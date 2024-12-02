@@ -8,5 +8,6 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "ipython>=8.30.0",
     "ruff>=0.8.1",
 ]
