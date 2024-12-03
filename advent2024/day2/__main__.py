@@ -1,8 +1,8 @@
 import itertools
 
-from advent2024.utils import open_input
+from advent2024.utils import input_tuples_per_line
 
-reports = [[int(level) for level in report] for report in open_input(2)]
+reports = [[int(level) for level in report] for report in input_tuples_per_line(2)]
 
 
 def check_pair(is_going_up, x, y):

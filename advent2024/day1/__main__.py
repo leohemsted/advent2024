@@ -2,11 +2,11 @@ import functools
 import itertools
 from collections import Counter
 
-from advent2024.utils import open_input
+from advent2024.utils import input_tuples_per_line
 
 lhs = []
 rhs = []
-for x, y in open_input(1):
+for x, y in input_tuples_per_line(1):
     lhs.append(int(x))
     rhs.append(int(y))
 lhs.sort()
