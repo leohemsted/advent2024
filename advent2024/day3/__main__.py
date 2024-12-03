@@ -12,30 +12,25 @@ def pt1():
 
 def pt2():
     parsed_commands = re.finditer(
-        "".join(
-            [
-                r"(?>(?P<mul>mul)\((\d+),(\d+)\))",
-                r"|",
-                r"(?>(?P<do>do)\(\))",
-                r"|",
-                r"(?>(?P<dont>don't)\(\))",
-            ]
+        (
+            r"(?>(?P<mul>mul)\((\d+),(\d+)\))"
+            r"|"
+            r"(?>(?P<do>do)\(\))"
+            r"|"
+            r"(?>(?P<dont>don't)\(\))"
         ),
         commands,
     )
     enabled = True
     running_total = 0
-    for command in parsed_commands:
-        vals = command.groupdict()
+    for vals in parsed_commands:
         if vals["do"]:
             enabled = True
         elif vals["dont"]:
             enabled = False
         elif vals["mul"]:
             if enabled:
-                running_total += int(command[2]) * int(command[3])
-        else:
-            breakpoint()
+                running_total += int(vals[2]) * int(vals[3])
     return running_total
 
 
