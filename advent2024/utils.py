@@ -13,7 +13,7 @@ def input_lines(day: int, filename: str = "input") -> Iterator[str]:
     path = Path.cwd() / "advent2024" / f"day{day}" / filename
     with path.open() as f:
         while line := f.readline():
-            yield line
+            yield line.strip()
 
 
 def input_raw(day: int, filename: str = "input") -> str:
