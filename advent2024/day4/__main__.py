@@ -71,16 +71,18 @@ def check_nearby_char(
     )
 
 
+def check_sam(x, y, direction):
+    return check_nearby_char(x, y, "S", direction, -1) and check_nearby_char(
+        x, y, "M", direction, 1
+    )
+
+
 def check_for_x_mas(x, y) -> bool:
     if char_equal(x, y, "A"):
         for direction in diagonals:
-            if check_nearby_char(x, y, "S", direction, -1) and check_nearby_char(
-                x, y, "M", direction, 1
-            ):
+            if check_sam(x, y, direction):
                 for diag in direction.intersecting_diagonals():
-                    if check_nearby_char(x, y, "S", diag, -1) and check_nearby_char(
-                        x, y, "M", diag, 1
-                    ):
+                    if check_sam(x, y, diag):
                         return True
     return False
 
