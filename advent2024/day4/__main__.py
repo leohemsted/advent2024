@@ -70,7 +70,7 @@ def check_for_string(coordinate: Coordinate, string: str, direction: Direction) 
 def pt1():
     return sum(
         check_for_string(Coordinate(x, y), string="XMAS", direction=direction)
-        for direction in Direction.all_directions
+        for direction in Direction.all_directions()
         for x in range(x_total)
         for y in range(y_total)
     )
@@ -94,7 +94,7 @@ def check_sam(coordinate: Coordinate, direction: Direction):
 def check_for_x_mas(coordinate: Coordinate) -> bool:
     return coordinate == "A" and any(
         check_sam(coordinate, diag)
-        for direction in Direction.diagonals
+        for direction in Direction.diagonals()
         if check_sam(coordinate, direction)
         for diag in direction.intersecting_diagonals()
     )
