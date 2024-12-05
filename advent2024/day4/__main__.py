@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import Literal, Self
+from typing import Any, Literal, Self
 
 from advent2024.utils import input_lines
 
@@ -11,10 +11,29 @@ x_total = len(wordsearch[0])
 
 
 @dataclass
-class Coordinate:
+class BaseCoord:
     x: int
     y: int
 
+
+class Coordinate(BaseCoord):
+    def in_bounds(self) -> bool:
+        return (0 <= self.x < x_total) and (0 <= self.y < y_total)
+
+    def _char_equal(self, char: str) -> bool:
+        return self.in_bounds() and wordsearch[self.y][self.x] == char
+
+    def translate(self, direction: "Direction") -> Self:
+        return type(self)(x=self.x + direction.x, y=self.y + direction.y)
+
+    def __eq__(self, other: Any) -> Self:
+        if isinstance(other, str):
+            return self._char_equal(other)
+        else:
+            return super().__eq__(other)
+
+
+class Direction(Coordinate):
     def intersecting_diagonals(self) -> list[Self]:
         # exclude any non-direction coordinates
         assert abs(self.x) == 1 and abs(self.y) == 1
@@ -24,71 +43,69 @@ class Coordinate:
             type(self)(x=self.x, y=self.y * -1),
         ]
 
+    def __mul__(self, val: int) -> Self:
+        return type(self)(x=self.x * val, y=self.y * val)
 
-all_directions = [
-    Coordinate(x, y) for x, y in itertools.product([-1, 0, 1], [-1, 0, 1])
-]
+    @classmethod
+    def all_directions(cls) -> list[Self]:
+        return [cls(x, y) for x, y in itertools.product([-1, 0, 1], [-1, 0, 1])]
 
-diagonals = [Coordinate(x, y) for x, y in itertools.product([-1, 1], [-1, 1])]
-
-
-def char_equal(x: int, y: int, char: str) -> bool:
-    return in_bounds(x, y) and wordsearch[y][x] == char
-
-
-def in_bounds(x: int, y: int) -> bool:
-    return (0 <= x < x_total) and (0 <= y < y_total)
+    @classmethod
+    def diagonals(cls) -> list[Self]:
+        return [cls(x, y) for x, y in itertools.product([-1, 1], [-1, 1])]
 
 
-def check_for_string(x: int, y: int, string: str, direction: Coordinate) -> bool:
+def check_for_string(coordinate: Coordinate, string: str, direction: Direction) -> bool:
     return (
         not string
-        or char_equal(x, y, string[0])
-        and check_for_string(x + direction.x, y + direction.y, string[1:], direction)
+        or coordinate == string[0]
+        and check_for_string(
+            coordinate.translate(direction),
+            string[1:],
+            direction,
+        )
     )
 
 
 def pt1():
     return sum(
-        check_for_string(x, y, string="XMAS", direction=direction)
-        for direction in all_directions
+        check_for_string(Coordinate(x, y), string="XMAS", direction=direction)
+        for direction in Direction.all_directions
         for x in range(x_total)
         for y in range(y_total)
     )
 
 
 def check_nearby_char(
-    x: int,
-    y: int,
+    coordinate: Coordinate,
     char_to_check: str,
-    direction: Coordinate,
+    direction: Direction,
     forwards_or_back: Literal[-1, 1],
 ):
-    return char_equal(
-        x + (forwards_or_back * direction.x),
-        y + (forwards_or_back * direction.y),
-        char_to_check,
+    return coordinate.translate(direction * forwards_or_back) == char_to_check
+
+
+def check_sam(coordinate: Coordinate, direction: Direction):
+    return check_nearby_char(coordinate, "S", direction, -1) and check_nearby_char(
+        coordinate, "M", direction, 1
     )
 
 
-def check_sam(x, y, direction):
-    return check_nearby_char(x, y, "S", direction, -1) and check_nearby_char(
-        x, y, "M", direction, 1
+def check_for_x_mas(coordinate: Coordinate) -> bool:
+    return coordinate == "A" and any(
+        check_sam(coordinate, diag)
+        for direction in Direction.diagonals
+        if check_sam(coordinate, direction)
+        for diag in direction.intersecting_diagonals()
     )
-
-
-def check_for_x_mas(x, y) -> bool:
-    if char_equal(x, y, "A"):
-        for direction in diagonals:
-            if check_sam(x, y, direction):
-                for diag in direction.intersecting_diagonals():
-                    if check_sam(x, y, diag):
-                        return True
-    return False
 
 
 def pt2():
-    return sum(check_for_x_mas(x, y) for x in range(x_total) for y in range(y_total))
+    return sum(
+        check_for_x_mas(Coordinate(x, y))
+        for x in range(x_total)
+        for y in range(y_total)
+    )
 
 
 print("pt1", pt1())
