@@ -1,58 +1,9 @@
-import itertools
-from dataclasses import dataclass
-from typing import Any, Literal, Self
+from typing import Literal
 
+from advent2024.coordinate import Coordinate, Direction, Grid
 from advent2024.utils import input_lines
 
-wordsearch = [list(l) for l in input_lines(4)]
-
-y_total = len(wordsearch)
-x_total = len(wordsearch[0])
-
-
-@dataclass
-class BaseCoord:
-    x: int
-    y: int
-
-
-class Coordinate(BaseCoord):
-    def in_bounds(self) -> bool:
-        return (0 <= self.x < x_total) and (0 <= self.y < y_total)
-
-    def _char_equal(self, char: str) -> bool:
-        return self.in_bounds() and wordsearch[self.y][self.x] == char
-
-    def translate(self, direction: "Direction") -> Self:
-        return type(self)(x=self.x + direction.x, y=self.y + direction.y)
-
-    def __eq__(self, other: Any) -> Self:
-        if isinstance(other, str):
-            return self._char_equal(other)
-        else:
-            return super().__eq__(other)
-
-
-class Direction(Coordinate):
-    def intersecting_diagonals(self) -> list[Self]:
-        # exclude any non-direction coordinates
-        assert abs(self.x) == 1 and abs(self.y) == 1
-        # returns intersecting diagonals
-        return [
-            type(self)(x=self.x * -1, y=self.y),
-            type(self)(x=self.x, y=self.y * -1),
-        ]
-
-    def __mul__(self, val: int) -> Self:
-        return type(self)(x=self.x * val, y=self.y * val)
-
-    @classmethod
-    def all_directions(cls) -> list[Self]:
-        return [cls(x, y) for x, y in itertools.product([-1, 0, 1], [-1, 0, 1])]
-
-    @classmethod
-    def diagonals(cls) -> list[Self]:
-        return [cls(x, y) for x, y in itertools.product([-1, 1], [-1, 1])]
+wordsearch = Grid(list(l) for l in input_lines(4))
 
 
 def check_for_string(coordinate: Coordinate, string: str, direction: Direction) -> bool:
@@ -71,8 +22,7 @@ def pt1():
     return sum(
         check_for_string(Coordinate(x, y), string="XMAS", direction=direction)
         for direction in Direction.all_directions()
-        for x in range(x_total)
-        for y in range(y_total)
+        for x, y in wordsearch
     )
 
 
@@ -101,11 +51,7 @@ def check_for_x_mas(coordinate: Coordinate) -> bool:
 
 
 def pt2():
-    return sum(
-        check_for_x_mas(Coordinate(x, y))
-        for x in range(x_total)
-        for y in range(y_total)
-    )
+    return sum(check_for_x_mas(Coordinate(x, y)) for x, y in wordsearch)
 
 
 print("pt1", pt1())
