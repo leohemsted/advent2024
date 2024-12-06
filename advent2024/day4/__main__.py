@@ -1,12 +1,14 @@
 from typing import Literal
 
-from advent2024.coordinate import Coordinate, Direction, Grid
+from advent2024.coordinate import Direction, Grid, GridCoordinate
 from advent2024.utils import input_lines
 
 wordsearch = Grid([list(l) for l in input_lines(4)])
 
 
-def check_for_string(coordinate: Coordinate, string: str, direction: Direction) -> bool:
+def check_for_string(
+    coordinate: GridCoordinate, string: str, direction: Direction
+) -> bool:
     return (
         not string
         or coordinate == string[0]
@@ -21,7 +23,7 @@ def check_for_string(coordinate: Coordinate, string: str, direction: Direction) 
 def pt1():
     return sum(
         check_for_string(
-            Coordinate(x, y, wordsearch), string="XMAS", direction=direction
+            GridCoordinate(x, y, wordsearch), string="XMAS", direction=direction
         )
         for direction in Direction.all_directions()
         for x, y in wordsearch
@@ -29,7 +31,7 @@ def pt1():
 
 
 def check_nearby_char(
-    coordinate: Coordinate,
+    coordinate: GridCoordinate,
     char_to_check: str,
     direction: Direction,
     forwards_or_back: Literal[-1, 1],
@@ -37,13 +39,13 @@ def check_nearby_char(
     return coordinate.translate(direction * forwards_or_back) == char_to_check
 
 
-def check_sam(coordinate: Coordinate, direction: Direction):
+def check_sam(coordinate: GridCoordinate, direction: Direction):
     return check_nearby_char(coordinate, "S", direction, -1) and check_nearby_char(
         coordinate, "M", direction, 1
     )
 
 
-def check_for_x_mas(coordinate: Coordinate) -> bool:
+def check_for_x_mas(coordinate: GridCoordinate) -> bool:
     return coordinate == "A" and any(
         check_sam(coordinate, diag)
         for direction in Direction.diagonals()
@@ -53,7 +55,7 @@ def check_for_x_mas(coordinate: Coordinate) -> bool:
 
 
 def pt2():
-    return sum(check_for_x_mas(Coordinate(x, y, wordsearch)) for x, y in wordsearch)
+    return sum(check_for_x_mas(GridCoordinate(x, y, wordsearch)) for x, y in wordsearch)
 
 
 print("pt1", pt1())

@@ -3,30 +3,32 @@ from dataclasses import dataclass
 from typing import Any, Generator, Self
 
 
+@dataclass(frozen=True)
 class Grid:
     grid: list[list[Any]]
 
-    x_total: int
-    y_total: int
+    @property
+    def x_total(self) -> int:
+        return len(self.grid)
 
-    index = (0, 0)
-
-    def __init__(self, grid: list[list[Any]]):
-        self.grid = grid
-        self.y_total = len(self.grid)
-        self.x_total = len(self.grid[0])
+    @property
+    def y_total(self) -> int:
+        return len(self.grid[0])
 
     def __iter__(self) -> Generator[tuple[Any, Any]]:
         for x in range(self.x_total):
             for y in range(self.y_total):
                 yield x, y
 
-    def __getitem__(self, index: int) -> list[Any]:
-        return self.grid[index]
+    def get(self, x: int, y: int):
+        return self.grid[y][x]
+
+    def in_bounds(self, coordinate: "Coordinate") -> bool:
+        return (0 <= coordinate.x < self.x_total) and (0 <= coordinate.y < self.y_total)
 
 
-@dataclass
-class BaseCoord:
+@dataclass(frozen=True)
+class Coordinate:
     x: int
     y: int
 
@@ -34,7 +36,7 @@ class BaseCoord:
         return type(self)(x=self.x + direction.x, y=self.y + direction.y)
 
 
-class Coordinate(BaseCoord):
+class GridCoordinate(Coordinate):
     grid: Grid
 
     def __init__(self, x: int, y: int, grid: Grid):
@@ -59,7 +61,7 @@ class Coordinate(BaseCoord):
         )
 
 
-class Direction(BaseCoord):
+class Direction(Coordinate):
     def intersecting_diagonals(self) -> list[Self]:
         # exclude any non-direction coordinates
         assert abs(self.x) == 1 and abs(self.y) == 1
