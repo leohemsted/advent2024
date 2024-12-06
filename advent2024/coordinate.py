@@ -56,7 +56,7 @@ class GridCoordinate(Coordinate):
         return self.in_bounds() and self.grid.get(self.x, self.y) == char
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, Coordinate):
+        if isinstance(other, type(self)):
             return super().__eq__(other)
         else:
             return self._cell_equal(other)
