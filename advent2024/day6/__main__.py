@@ -1,7 +1,7 @@
 from advent2024.coordinate import Coordinate, Direction, Grid
 from advent2024.utils import input_lines
 
-room = Grid([list(l) for l in input_lines(6, "example")])
+room = Grid([list(l) for l in input_lines(6)])
 
 NORTH = Direction(0, -1)
 SOUTH = Direction(0, 1)
@@ -31,6 +31,29 @@ for x, y in room:
             raise ValueError(f"unrecognised cell {cell_contents}")
 
 
+def print_room(
+    room: Grid,
+    obstacles: set[Coordinate],
+    tiles_visited: set[tuple[Coordinate, Direction]] = set(),
+    notable_obstacle: Coordinate = Coordinate(-1, -1),
+):
+    visits = {c for c, d in tiles_visited}
+    for y in range(len(room.grid[0])):
+        for x in range(len(room.grid)):
+            to_print = "."
+            if Coordinate(x, y) in obstacles:
+                to_print = "#"
+            if Coordinate(x, y) in visits:
+                to_print = "/"
+            if Coordinate(x, y) == guard_start_location:
+                to_print = "^"
+            if Coordinate(x, y) == notable_obstacle:
+                to_print = "O"
+            print(to_print, end="")
+        print("")
+    print(notable_obstacle)
+
+
 def pt1() -> int:
     tiles_visited = set()
     curr_direction: Direction = guard_start_direction
@@ -42,6 +65,13 @@ def pt1() -> int:
             curr_direction = next_dir[curr_direction]
         else:
             curr_location = one_step_forwards
+
+    # print_room(
+    #     room=room,
+    #     obstacles=obstacles,
+    #     tiles_visited={(x, Direction(0, 0)) for x in tiles_visited},
+    #     notable_obstacle=curr_location,
+    # )
 
     return len(tiles_visited)
 
@@ -61,35 +91,41 @@ def plot_route(room: Grid) -> list[tuple[Coordinate, Direction]]:
     return tiles_visited
 
 
+def detect_infinite_loop(
+    room: Grid, obstacles: set[Coordinate], notable: Coordinate
+) -> bool:
+    curr_direction = guard_start_direction
+    curr_location = guard_start_location
+
+    tiles_visited: set[tuple[Coordinate, Direction]] = set()
+
+    while room.in_bounds(curr_location):
+        tiles_visited.add((curr_location, curr_direction))
+
+        if (one_step_forwards := curr_location.translate(curr_direction)) in obstacles:
+            curr_direction = next_dir[curr_direction]
+        else:
+            curr_location = one_step_forwards
+
+        if (curr_location, curr_direction) in tiles_visited:
+            # print_room(room, obstacles, tiles_visited, notable_obstacle=notable)
+            return True
+    return False
+
+
 def pt2() -> int:
     tiles_visited = plot_route(room)
-    infinite_loops = 0
+    extra_obstacles: set[Coordinate] = set()
 
-    def _check_for_overlaps(i: int, tile: Coordinate, direction: Direction) -> bool:
-        new_direction = next_dir[direction]
-        # for any tile, if i turn right and then extend in a line until
-        # i hit edge/obstacle, do i go over a tile that i visited
-        # earlier in the path
-        while room.in_bounds(tile) and tile not in obstacles:
-            # for each bit of the route we've done so far
-            # (using range rather than slice because slice makes a copy which seems wasteful)
-            for previously_visited_tile, previous_direction in tiles_visited[:i]:
-                if (
-                    tile == previously_visited_tile
-                    and new_direction == previous_direction
-                ):
-                    return True
-            # move one step forward and try again
-            tile = tile.translate(new_direction)
+    for tile, _ in tiles_visited:
+        if tile in extra_obstacles or tile == guard_start_location:
+            continue
+        modified_obstacles = obstacles | {tile}
+        if detect_infinite_loop(room, modified_obstacles, tile):
+            extra_obstacles.add(tile)
 
-        return False
-
-    for i, (tile, direction) in enumerate(tiles_visited):
-        if _check_for_overlaps(i, tile, direction):
-            infinite_loops += 1
-    return infinite_loops
+    return len(extra_obstacles)
 
 
 print("pt1", pt1())
-# print("pt2", pt2())
-print("pt2", pt3())
+print("pt2", pt2())
