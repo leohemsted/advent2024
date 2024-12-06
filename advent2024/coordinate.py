@@ -53,6 +53,11 @@ class Coordinate(BaseCoord):
         else:
             return self._cell_equal(other)
 
+    def translate(self, direction: "Direction") -> Self:
+        return type(self)(
+            x=self.x + direction.x, y=self.y + direction.y, grid=self.grid
+        )
+
 
 class Direction(BaseCoord):
     def intersecting_diagonals(self) -> list[Self]:

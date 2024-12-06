@@ -20,7 +20,9 @@ def check_for_string(coordinate: Coordinate, string: str, direction: Direction) 
 
 def pt1():
     return sum(
-        check_for_string(Coordinate(x, y), string="XMAS", direction=direction)
+        check_for_string(
+            Coordinate(x, y, wordsearch), string="XMAS", direction=direction
+        )
         for direction in Direction.all_directions()
         for x, y in wordsearch
     )
@@ -51,7 +53,7 @@ def check_for_x_mas(coordinate: Coordinate) -> bool:
 
 
 def pt2():
-    return sum(check_for_x_mas(Coordinate(x, y)) for x, y in wordsearch)
+    return sum(check_for_x_mas(Coordinate(x, y, wordsearch)) for x, y in wordsearch)
 
 
 print("pt1", pt1())
