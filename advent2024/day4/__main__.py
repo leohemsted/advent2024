@@ -3,7 +3,7 @@ from typing import Literal
 from advent2024.coordinate import Coordinate, Direction, Grid
 from advent2024.utils import input_lines
 
-wordsearch = Grid(list(l) for l in input_lines(4))
+wordsearch = Grid([list(l) for l in input_lines(4)])
 
 
 def check_for_string(coordinate: Coordinate, string: str, direction: Direction) -> bool:

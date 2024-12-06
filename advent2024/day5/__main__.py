@@ -12,7 +12,7 @@ for first, later in (
 ):
     rule_dict[first].add(later)
 
-updates: list[int] = [list(map(int, line.split(","))) for line in input_data]
+updates: list[list[int]] = [list(map(int, line.split(","))) for line in input_data]
 
 
 def check_update(update: list[int]) -> bool:

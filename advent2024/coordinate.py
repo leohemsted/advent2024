@@ -21,6 +21,9 @@ class Grid:
             for y in range(self.y_total):
                 yield x, y
 
+    def __getitem__(self, index: int) -> list[Any]:
+        return self.grid[index]
+
 
 @dataclass
 class BaseCoord:
@@ -44,7 +47,7 @@ class Coordinate(BaseCoord):
     def _cell_equal(self, char: str) -> bool:
         return self.in_bounds() and self.grid[self.y][self.x] == char
 
-    def __eq__(self, other: Any) -> Self:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, Coordinate):
             return super().__eq__(other)
         else:
