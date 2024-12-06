@@ -1,3 +1,4 @@
+import copy
 import itertools
 from dataclasses import dataclass
 from typing import Any, Generator, Self
@@ -26,6 +27,11 @@ class Grid:
     def in_bounds(self, coordinate: "Coordinate") -> bool:
         return (0 <= coordinate.x < self.x_total) and (0 <= coordinate.y < self.y_total)
 
+    def with_amendment(self, coordinate: "Coordinate", new_val: Any) -> Self:
+        new_raw = copy.deepcopy(self.grid)
+        new_raw[coordinate.y][coordinate.x] = new_val
+        return type(self)(new_raw)
+
 
 @dataclass(frozen=True)
 class Coordinate:
@@ -47,7 +53,7 @@ class GridCoordinate(Coordinate):
         return (0 <= self.x < self.grid.x_total) and (0 <= self.y < self.grid.y_total)
 
     def _cell_equal(self, char: str) -> bool:
-        return self.in_bounds() and self.grid[self.y][self.x] == char
+        return self.in_bounds() and self.grid.get(self.x, self.y) == char
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Coordinate):
@@ -81,3 +87,17 @@ class Direction(Coordinate):
     @classmethod
     def diagonals(cls) -> list[Self]:
         return [cls(x, y) for x, y in itertools.product([-1, 1], [-1, 1])]
+
+    def __repr__(self) -> str:
+        str_parts = []
+        if self.y == -1:
+            str_parts.append("North")
+        elif self.y == 1:
+            str_parts.append("South")
+
+        if self.x == -1:
+            str_parts.append("East")
+        elif self.x == 1:
+            str_parts.append("West")
+
+        return f"Dir({' '.join(str_parts)})"
