@@ -1,5 +1,6 @@
 import functools
 import itertools
+import math
 from typing import Callable, Iterable
 
 from advent2024.utils import input_tuples_per_line
@@ -25,5 +26,16 @@ pt1 = sum(
     if check_validity(result, inputs, [int.__add__, int.__mul__])
 )
 
+pt2 = sum(
+    result
+    for result, inputs in rows
+    if check_validity(
+        result,
+        inputs,
+        # can also use lambda x, y: int(str(x) + str(y))
+        [int.__add__, int.__mul__, lambda x, y: x * 10 ** math.ceil(math.log10(y)) + y],
+    )
+)
 
 print("pt1", pt1)
+print("pt2", pt2)
