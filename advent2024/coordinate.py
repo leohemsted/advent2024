@@ -41,6 +41,15 @@ class Coordinate:
     def translate(self, direction: "Direction") -> Self:
         return type(self)(x=self.x + direction.x, y=self.y + direction.y)
 
+    def __add__(self, other: Self) -> Self:
+        return type(self)(other.x + self.x, other.y + self.y)
+
+    def __sub__(self, other: Self) -> Self:
+        return type(self)(other.x - self.x, other.y - self.y)
+
+    def diff(self, other: Self) -> "Direction":
+        return Direction.from_coordinate(other - self)
+
 
 class GridCoordinate(Coordinate):
     grid: Grid
@@ -67,7 +76,12 @@ class GridCoordinate(Coordinate):
         )
 
 
+@dataclass(frozen=True)
 class Direction(Coordinate):
+    @classmethod
+    def from_coordinate(cls, coordinate: Coordinate) -> Self:
+        return cls(coordinate.x, coordinate.y)
+
     def intersecting_diagonals(self) -> list[Self]:
         # exclude any non-direction coordinates
         assert abs(self.x) == 1 and abs(self.y) == 1
@@ -90,14 +104,16 @@ class Direction(Coordinate):
 
     def __repr__(self) -> str:
         str_parts = []
-        if self.y == -1:
+        if abs(self.y) > 1 or abs(self.x) > 1:
+            str_parts.append(f"({self.x}, {self.y})")
+        if self.y < 0:
             str_parts.append("North")
-        elif self.y == 1:
+        elif self.y > 0:
             str_parts.append("South")
 
-        if self.x == -1:
+        if self.x < 0:
             str_parts.append("East")
-        elif self.x == 1:
+        elif self.x > 0:
             str_parts.append("West")
 
         return f"Dir({' '.join(str_parts)})"
