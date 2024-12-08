@@ -24,4 +24,18 @@ def get_antinodes() -> set[Coordinate]:
     return antinodes
 
 
+def get_harmonic_antinodes() -> set[Coordinate]:
+    antinodes = set()
+    for antennae in antennae_groups.values():
+        for first, second in itertools.permutations(antennae, 2):
+            vector = first.diff(second)
+            antinode = first
+            while grid.in_bounds(antinode):
+                antinodes.add(antinode)
+                antinode = antinode + vector
+
+    return antinodes
+
+
 print("pt1", len(get_antinodes()))
+print("pt2", len(get_harmonic_antinodes()))
