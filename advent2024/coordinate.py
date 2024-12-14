@@ -5,8 +5,8 @@ from typing import Any, Generator, Self
 
 
 @dataclass(frozen=True)
-class Grid:
-    grid: list[list[Any]]
+class Grid[T]:
+    grid: list[list[T]]
 
     @property
     def x_total(self) -> int:
@@ -16,18 +16,21 @@ class Grid:
     def y_total(self) -> int:
         return len(self.grid[0])
 
-    def __iter__(self) -> Generator[tuple[Any, Any]]:
+    def __iter__(self) -> Generator[tuple[int, int]]:
         for x in range(self.x_total):
             for y in range(self.y_total):
                 yield x, y
 
-    def get(self, x: int, y: int):
+    def get_from_coordinate(self, coordinate: "Coordinate") -> T:
+        return self.get(coordinate.x, coordinate.y)
+
+    def get(self, x: int, y: int) -> T:
         return self.grid[y][x]
 
     def in_bounds(self, coordinate: "Coordinate") -> bool:
         return (0 <= coordinate.x < self.x_total) and (0 <= coordinate.y < self.y_total)
 
-    def with_amendment(self, coordinate: "Coordinate", new_val: Any) -> Self:
+    def with_amendment(self, coordinate: "Coordinate", new_val: T) -> Self:
         new_raw = copy.deepcopy(self.grid)
         new_raw[coordinate.y][coordinate.x] = new_val
         return type(self)(new_raw)
