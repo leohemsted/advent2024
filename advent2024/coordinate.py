@@ -120,3 +120,10 @@ class Direction(Coordinate):
             str_parts.append("West")
 
         return f"Dir({' '.join(str_parts)})"
+
+
+NORTH = Direction(0, -1)
+SOUTH = Direction(0, 1)
+EAST = Direction(1, 0)
+WEST = Direction(-1, 0)
+CARDINAL_DIRECTIONS = {NORTH, SOUTH, EAST, WEST}
