@@ -30,5 +30,32 @@ def pt1():
     return total
 
 
+def get_count_of_trails(coordinate: Coordinate, val: int) -> int:
+    if grid.in_bounds(coordinate) and grid.get_from_coordinate(coordinate) == val:
+        if val == 9:
+            return 1
+        else:
+            next = val + 1
+            return sum(
+                get_count_of_trails(coordinate + dir, next)
+                for dir in [
+                    Direction(0, -1),
+                    Direction(0, 1),
+                    Direction(1, 0),
+                    Direction(-1, 0),
+                ]
+            )
+    return 0
+
+
+def pt2():
+    total = 0
+    for x, y in grid:
+        coord = Coordinate(x, y)
+        if grid.get_from_coordinate(coord) == 0:
+            total += get_count_of_trails(coord, 0)
+    return total
+
+
 print("pt1", pt1())
-# print("pt1", pt2())
+print("pt2", pt2())
