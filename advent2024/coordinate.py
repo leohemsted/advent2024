@@ -48,7 +48,7 @@ class Coordinate:
         return type(self)(other.x + self.x, other.y + self.y)
 
     def __sub__(self, other: Self) -> Self:
-        return type(self)(other.x - self.x, other.y - self.y)
+        return type(self)(self.x - other.x, self.y - other.y)
 
     def diff(self, other: Self) -> "Direction":
         return Direction.from_coordinate(other - self)
@@ -127,3 +127,5 @@ SOUTH = Direction(0, 1)
 EAST = Direction(1, 0)
 WEST = Direction(-1, 0)
 CARDINAL_DIRECTIONS = {NORTH, SOUTH, EAST, WEST}
+
+RIGHT_TURN = {NORTH: EAST, EAST: SOUTH, SOUTH: WEST, WEST: NORTH}
