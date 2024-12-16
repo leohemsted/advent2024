@@ -1,5 +1,6 @@
 import itertools
 from collections import defaultdict
+from typing import Literal
 
 from advent2024.coordinate import (
     CARDINAL_DIRECTIONS,
@@ -14,48 +15,6 @@ from advent2024.coordinate import (
 from advent2024.utils import input_lines
 
 grid = Grid([list(line) for line in input_lines(12)])
-
-
-def process_area(
-    coord: Coordinate,
-    val: str,
-    area: set[Coordinate],
-    perimiter: int,
-) -> int:
-    area.add(coord)
-
-    new_fences = 0
-    for dir in CARDINAL_DIRECTIONS:
-        next_coord = coord + dir
-
-        if next_coord not in area:
-            if (
-                not grid.in_bounds(next_coord)
-                or grid.get_from_coordinate(next_coord) != val
-            ):
-                # add one fence
-                new_fences += 1
-            else:
-                new_fences += process_area(next_coord, val, area, perimiter)
-
-    return new_fences
-
-
-def pt1():
-    sets = []
-    cost = 0
-    for x, y in grid:
-        coord = Coordinate(x, y)
-        if not any(coord in set for set in sets):
-            area = set()
-            sets.append(area)
-            val = grid.get_from_coordinate(coord)
-            # if val == "I" and coord == Coordinate(2, 7):
-            #     breakpoint()
-            perimiter = process_area(coord, val, area, 0)
-            print(val, coord, len(area), perimiter)
-            cost += len(area) * perimiter
-    return cost
 
 
 def get_area(coord: Coordinate, val: str, area: set[Coordinate]) -> None:
@@ -73,10 +32,7 @@ def get_area(coord: Coordinate, val: str, area: set[Coordinate]) -> None:
             get_area(next_coord, val, area)
 
 
-def get_num_sides(area: set[Coordinate]) -> int:
-    coords_by_row: dict[int, list[Coordinate]] = defaultdict(list)
-    coords_by_col: dict[int, list[Coordinate]] = defaultdict(list)
-
+def calc_fences(area: set[Coordinate], part=Literal["pt1", "pt2"]) -> int:
     # each cardinal direction has a dict of axes (either x or y), each of which has
     # a list of fences. we then loop through the list to see what's what
     # we have directions rather than just two x and y, so that outie fences vs
@@ -85,46 +41,47 @@ def get_num_sides(area: set[Coordinate]) -> int:
         lambda: defaultdict(list)
     )
     for c in area:
-        coords_by_row[c.y].append(c)
-        coords_by_col[c.x].append(c)
-        if c + NORTH not in area:
-            fences[NORTH][c.y].append(c.x)
-        if c + SOUTH not in area:
-            fences[SOUTH][c.y + 1].append(c.x)
-        if c + WEST not in area:
-            fences[WEST][c.x].append(c.y)
-        if c + EAST not in area:
-            fences[EAST][c.x + 1].append(c.y)
+        for dir in [NORTH, SOUTH]:
+            if c + dir not in area:
+                fences[dir][c.y].append(c.x)
+        for dir in [EAST, WEST]:
+            if c + dir not in area:
+                fences[dir][c.x].append(c.y)
 
-    def _count_axes(fences_dict: dict[int, list[int]]) -> int:
+    def _count_axes_pt1(fences_dict: dict[int, list[int]]) -> int:
+        return sum(len(fence_list) for fence_list in fences_dict.values())
+
+    def _count_axes_pt2(fences_dict: dict[int, list[int]]) -> int:
         fence_count = 0
         for fence_list in fences_dict.values():
+            # always have at least one fence in a row
             fence_count += 1
             for first_fence, next_fence in itertools.pairwise(sorted(fence_list)):
                 if next_fence - first_fence != 1:
+                    # if there's a gap, there must be at least one more fence section
                     fence_count += 1
         return fence_count
 
-    return sum(
-        _count_axes(fence_list_dict) for direction, fence_list_dict in fences.items()
-    )
+    fn = _count_axes_pt1 if part == "pt1" else _count_axes_pt2
+
+    return sum(fn(fence_list_dict) for fence_list_dict in fences.values())
 
 
-def pt2():
-    sets = []
-    cost = 0
-    for x, y in grid:
-        coord = Coordinate(x, y)
-        if not any(coord in set for set in sets):
-            val = grid.get_from_coordinate(coord)
-            area = set()
-            sets.append(area)
-            get_area(coord, val, area)
-            perimeter = get_num_sides(area)
-            print(val, coord, len(area), "sides", perimeter)
-            cost += len(area) * perimeter
-    return cost
+sets: list[set[Coordinate]] = []
+pt1_cost = 0
+pt2_cost = 0
+for x, y in grid:
+    coord = Coordinate(x, y)
+    if not any(coord in set for set in sets):
+        val = grid.get_from_coordinate(coord)
+        area: set[Coordinate] = set()
+        sets.append(area)
+        get_area(coord, val, area)
+        side_count = calc_fences(area, "pt1")
+        fence_count = calc_fences(area, "pt2")
+        pt1_cost += len(area) * side_count
+        pt2_cost += len(area) * fence_count
 
 
-print("pt1", pt1())
-print("pt2", pt2())
+print("pt1", pt1_cost)
+print("pt2", pt2_cost)
