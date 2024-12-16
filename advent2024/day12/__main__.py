@@ -1,15 +1,18 @@
+import itertools
 from collections import defaultdict
 
 from advent2024.coordinate import (
     CARDINAL_DIRECTIONS,
     EAST,
-    RIGHT_TURN,
+    NORTH,
+    SOUTH,
+    WEST,
     Coordinate,
     Grid,
 )
 from advent2024.utils import input_lines
 
-grid = Grid([list(line) for line in input_lines(12, "example1")])
+grid = Grid([list(line) for line in input_lines(12)])
 
 
 def process_area(
@@ -70,42 +73,36 @@ def get_area(coord: Coordinate, val: str, area: set[Coordinate]) -> None:
 
 
 def get_num_sides(area: set[Coordinate]) -> int:
-    by_row: dict[int, list[Coordinate]] = defaultdict(list)
-    by_col: dict[int, list[Coordinate]] = defaultdict(list)
+    coords_by_row: dict[int, list[Coordinate]] = defaultdict(list)
+    coords_by_col: dict[int, list[Coordinate]] = defaultdict(list)
+
+    # lists of x-indexes of fences above that row index
+    fences_by_row: dict[int, list[int]] = defaultdict(list)
+    # lists of y-indexes of fences to the left of that col index
+    fences_by_col: dict[int, list[int]] = defaultdict(list)
 
     for c in area:
-        by_row[c.y].append(c)
-        by_col[c.x].append(c)
-    for row in by_row.values():
-        row.sort(key=lambda c: c.x)
-    for col in by_col.values():
-        col.sort(key=lambda c: c.y)
+        coords_by_row[c.y].append(c)
+        coords_by_col[c.x].append(c)
+        if c + NORTH not in area:
+            fences_by_row[c.y].append(c.x)
+        if c + SOUTH not in area:
+            fences_by_row[c.y + 1].append(c.x)
+        if c + WEST not in area:
+            fences_by_col[c.x].append(c.y)
+        if c + EAST not in area:
+            fences_by_col[c.x + 1].append(c.y)
 
-    # find leftmost coordinate in top row of area
-    first_coordinate = by_row[min(by_row.keys())][0]
+    def _count_axes(fences_dict: dict[int, list[int]]) -> int:
+        fence_count = 0
+        for fence_list in fences_dict.values():
+            fence_count += 1
+            for first_fence, next_fence in itertools.pairwise(sorted(fence_list)):
+                if next_fence - first_fence != 1:
+                    fence_count += 1
+        return fence_count
 
-    back_at_start = False
-    directions_used = []
-    curr_coord = first_coordinate
-    direction = first_direction = EAST
-    print(area)
-    while not back_at_start:
-        next_coord = curr_coord + direction
-        while next_coord in area:
-            print("walking", curr_coord, direction)
-            next_coord = next_coord + direction
-        # go back one as if we failed while statement, we've just overshot
-        curr_coord = next_coord - direction
-        print(curr_coord, direction)
-        directions_used.append(direction)
-
-        direction = RIGHT_TURN[direction]
-
-        # until we're back at the start and pointing the same way we started
-        back_at_start = curr_coord == first_coordinate and direction == first_direction
-
-    print(directions_used)
-    return len(directions_used)
+    return _count_axes(fences_by_col) + _count_axes(fences_by_row)
 
 
 def pt2():
@@ -116,8 +113,6 @@ def pt2():
         if not any(coord in set for set in sets):
             val = grid.get_from_coordinate(coord)
             area = set()
-            if val != "C":
-                continue
             sets.append(area)
             get_area(coord, val, area)
             perimeter = get_num_sides(area)
