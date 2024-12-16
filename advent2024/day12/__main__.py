@@ -8,6 +8,7 @@ from advent2024.coordinate import (
     SOUTH,
     WEST,
     Coordinate,
+    Direction,
     Grid,
 )
 from advent2024.utils import input_lines
@@ -76,22 +77,24 @@ def get_num_sides(area: set[Coordinate]) -> int:
     coords_by_row: dict[int, list[Coordinate]] = defaultdict(list)
     coords_by_col: dict[int, list[Coordinate]] = defaultdict(list)
 
-    # lists of x-indexes of fences above that row index
-    fences_by_row: dict[int, list[int]] = defaultdict(list)
-    # lists of y-indexes of fences to the left of that col index
-    fences_by_col: dict[int, list[int]] = defaultdict(list)
-
+    # each cardinal direction has a dict of axes (either x or y), each of which has
+    # a list of fences. we then loop through the list to see what's what
+    # we have directions rather than just two x and y, so that outie fences vs
+    # innie fences can be separated (eg: example 5)
+    fences: defaultdict[Direction, dict[int, list[int]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
     for c in area:
         coords_by_row[c.y].append(c)
         coords_by_col[c.x].append(c)
         if c + NORTH not in area:
-            fences_by_row[c.y].append(c.x)
+            fences[NORTH][c.y].append(c.x)
         if c + SOUTH not in area:
-            fences_by_row[c.y + 1].append(c.x)
+            fences[SOUTH][c.y + 1].append(c.x)
         if c + WEST not in area:
-            fences_by_col[c.x].append(c.y)
+            fences[WEST][c.x].append(c.y)
         if c + EAST not in area:
-            fences_by_col[c.x + 1].append(c.y)
+            fences[EAST][c.x + 1].append(c.y)
 
     def _count_axes(fences_dict: dict[int, list[int]]) -> int:
         fence_count = 0
@@ -102,7 +105,9 @@ def get_num_sides(area: set[Coordinate]) -> int:
                     fence_count += 1
         return fence_count
 
-    return _count_axes(fences_by_col) + _count_axes(fences_by_row)
+    return sum(
+        _count_axes(fence_list_dict) for direction, fence_list_dict in fences.items()
+    )
 
 
 def pt2():
